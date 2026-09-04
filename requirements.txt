@@ -1,4 +1,5 @@
 Flask==3.0.0
-yt-dlp==2023.12.30
+yt-dlp
 opencv-python-headless==4.9.0.80
 gunicorn==21.2.0
+numpy<2.0.0
