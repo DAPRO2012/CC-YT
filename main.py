@@ -9,7 +9,13 @@ app = Flask(__name__)
 def generate_frames(video_url):
     ydl_opts = {
         'format': 'bestvideo[height<=360][ext=mp4]/worstvideo[ext=mp4]/best[height<=360]',
-        'quiet': True
+        'quiet': True,
+        # Spoof the client to bypass YouTube's datacenter bot detection
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['web_safari', 'android']
+            }
+        }
     }
     
     try:
@@ -21,7 +27,7 @@ def generate_frames(video_url):
             user_agent = http_headers.get('User-Agent', 'Mozilla/5.0')
     except Exception as e:
         print(f"yt-dlp extraction failed: {e}")
-        yield b'YTDLP_ERROR' 
+        yield b'YTDL' + b'_ERROR'.ljust(10, b' ')
         return
 
     opencv_headers = f"User-Agent: {user_agent}\r\n"
@@ -33,7 +39,7 @@ def generate_frames(video_url):
 
     if not cap.isOpened():
         print("OpenCV failed to open the extracted video stream.")
-        yield b'OPENCV_ERROR'
+        yield b'OPEN' + b'_ERROR'.ljust(10, b' ')
         return
 
     print("Successfully streaming frames...")
@@ -60,3 +66,6 @@ def generate_frames(video_url):
 def video_stream():
     video_url = request.args.get('url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     return Response(generate_frames(video_url), mimetype='application/octet-stream')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
